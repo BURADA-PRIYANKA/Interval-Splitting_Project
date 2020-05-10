@@ -1,155 +1,392 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <iostream>
 #include <fstream>
-#include <map>
-#include <vector>
-#include <stdlib.h>
 using namespace std;
 
-int main()
+struct node{
+	double *k,*v,key,value;
+	struct node *left,*right;
+	int height;
+};
+
+double epsilon;
+//struct node *head;
+
+int height(struct node *a){
+	int lh,rh;
+	if(a==NULL) return 0;
+	if(a->left==NULL) lh=0;
+	else {lh=1+a->left->height;}
+	if(a->right==NULL) rh=0;
+	else rh=1+a->right->height;
+	if(lh>rh) return lh;
+	else return rh;
+}
+
+/*double *newdouble(double d){
+    double *nd;
+    nd = (double *)malloc(sizeof(double));
+    nd = &d;
+    return nd;
+};*/
+struct node *newnode(double d){
+	struct node *ne;
+	ne=(struct node *)malloc(sizeof(struct node));
+	ne->k = &(ne->key);
+	ne->key=d;
+	ne->v = &(ne->value);
+	ne->value=d;
+	ne->left=NULL;
+	ne->right=NULL;
+	ne->height=height(ne);
+	return ne;
+}
+void print2D(struct node *root);
+struct node *rotateright(struct node *x){
+	//cout<<"enter ayyi chachaanu"<<endl;
+	struct node *y=x->left;
+	x->left=y->right;
+	y->right=x;
+	y->height=height(y);
+	x->height=height(x);
+	//print2D(x);
+	return y;
+}
+
+struct node *rotateleft(struct node *x){
+    //cout<<"enetered1"<<"  "<<x->key<<endl;
+	struct node *y=x->right;
+	x->right=y->left;
+	y->left=x;
+	x->height=height(x);
+	y->height=height(y);
+	//cout<<endl<<y->height<<endl;
+	//cout<<endl<<x->height<<endl;
+	return y;
+}
+
+int balancefactor(struct node *T){
+	int lh,rh;
+	if(T==NULL)
+		return(0);
+
+	if(T->left==NULL)
+		lh=0;
+	else
+		lh=1+T->left->height;
+
+	if(T->right==NULL)
+		rh=0;
+	else
+		rh=1+T->right->height;
+
+	return(rh-lh);
+}
+
+struct node *min(struct node *head){
+	struct node *temp=head;
+	while(temp->left!=NULL){
+		temp=temp->left;
+	}
+	return temp;
+}
+
+/*struct node *insert(struct node *root,int k){
+	if(root==NULL){
+		root=(struct node*)malloc(sizeof(struct node));
+		root->key=k;
+		root->left=NULL;
+		root->right=NULL;
+	}
+	else{
+		if(k>root->key){
+			root->right=insert(root->right,k);
+			if(balancefactor(root)==2){
+				if(k>root->right->key){
+					return rotateleft(root);
+				}
+				else{
+					root->right=rotateright(root->right);
+					return rotateleft(root);
+				}
+			}
+		}
+		if(k<root->key){
+			root->left=insert(root->left,k);
+			if(balancefactor(root)==-2){
+				if(k<root->left->key){
+					return rotateright(root);
+				}
+				else{
+					root->left=rotateleft(root->left);
+					return rotateright(root);
+				}
+			}
+		}
+		root->height=height(root);
+	}
+	return root;
+}*/
+
+
+struct node *deleteNode(struct node *root,double k){
+	if(root==NULL) return root;
+	if(k < root->key){
+		root->left=deleteNode(root->left,k);
+		if(balancefactor(root)==2){
+			if(balancefactor(root->left)>=0){
+				return rotateleft(root);
+			}
+			else{
+				root->right=rotateright(root->right);
+				return rotateleft(root);
+			}
+		}
+	}
+	else if(k>root->key){
+		root->right=deleteNode(root->right,k);
+		if(balancefactor(root)==-2){
+			if(balancefactor(root->right)<=0){
+				return rotateright(root);
+			}
+			else{
+				root->left=rotateleft(root->left);
+				return rotateright(root);
+			}
+		}
+	}
+	else{
+		if(root->right!=NULL){
+			struct node *temp=min(root->right);
+			root->key=temp->key;
+			root->value = temp->value;
+			root->right=deleteNode(root->right,temp->key);
+			if(balancefactor(root)==-2){
+				if(balancefactor(root->left)<=0){
+					return rotateright(root);
+				}
+				else{
+					root->left=rotateleft(root->left);
+					return rotateright(root);
+				}
+			}
+		}
+		else return root->left;
+	}
+	root->height=height(root);
+	return root;
+}
+
+void preorder(struct node *head){
+	struct node *temp=head;
+	if(temp!=NULL){
+// 		printf("%d(bf==%d)  ",temp->key,balancefactor(temp));
+        preorder(temp->left);
+        cout<<"("<<temp->key<<","<<temp->value<<")"<<balancefactor(temp)<<endl;
+
+		preorder(temp->right);
+	}
+}
+int COUNT =5;
+void print2DUtil(struct node *root, int space)
 {
-    int i=0;
+    // Base case
+    if (root == NULL)
+        return;
+
+    // Increase distance between levels
+    space += COUNT;
+
+    // Process right child first
+    print2DUtil(root->right, space);
+
+    // Print current node after space
+    // count
+    cout<<endl;
+    for (int i = COUNT; i < space; i++)
+        cout<<" ";
+    cout<<root->key<<"\n";
+
+    // Process left child
+    print2DUtil(root->left, space);
+}
+
+// Wrapper over print2DUtil()
+void print2D(struct node *root)
+{
+    // Pass initial space count as 0
+    print2DUtil(root, 0);
+}
+
+int double_equals(double a, double b )
+{
+    double ep = 0.000000000000001;
+    if((a - b) < ep  &&(a-b)!=0){
+        return -1;
+    }else if(a-b > ep){
+        return 1;
+    }else{
+        return 0;
+    }
+}
+
+struct node* insert(struct node* node, double key)
+{
+    //cout<<"entering :"<<key<<endl;
+    /* 1.  Perform the normal BST rotation */
+    if (node == NULL)
+        return(newnode(key));
+    //cout<<node->key<<"ikada enter hua"<<key+epsilon<<endl;
+    //bool b = node->key.compareTo(key+epsilon);
+    //cout<<double_equals(node->key ,(key+epsilon))<<endl;
+    if (double_equals(node->key ,(key+epsilon))==1)
+        {node->left  = insert(node->left, key);}
+    else if (double_equals(node->value ,(key-epsilon))==-1){
+        //cout<<"i came"<<endl;
+        //cout<<node->value<<" i came"<<endl;
+        node->right = insert(node->right, key);
+    }
+    else if(double_equals(node->key ,key)==1 && (double_equals(node->key ,(key+epsilon))<=0)){
+            cout<<node->key<<"entered"<<endl;
+        if(node->left==NULL){
+            node->key = key;
+            return node;
+        }else{
+            struct node*nodex = node->left;
+            while(nodex->right !=NULL){
+                nodex = nodex->right;
+            }
+            if(double_equals(nodex->value ,(key-epsilon))>=0){
+                double temp = nodex->key;
+                node = deleteNode(node,nodex->key);
+                node->key = temp;
+                return node;
+            }else{
+                node->key = key;
+                return node;
+            }
+        }
+    }else if(double_equals(node->key ,key)==-1 && (double_equals(node->value ,key)==1)){
+        return node;
+    }else if(double_equals(node->value,key-epsilon)>=0){
+
+        if(node->right == NULL){
+            node->value = key;
+            return node;
+        }else{
+            struct node* nodex = node->right;
+            while(nodex->left != NULL){
+                nodex = nodex->left;
+            }
+            if(double_equals(nodex->key,key+epsilon)<=0){
+                double temp1 = nodex->value;
+                double temp2 = nodex->key;
+                node = deleteNode(node,temp2);
+                //cout<<"start"<<endl;
+                //preorder(node);
+                //cout<<"end"<<endl;
+                node->value = temp1;
+                return node;
+            }else{
+                node->value = key;
+                return node;
+            }
+        }
+    }
+    //cout<<node->key<<endl;
+    //cout<<"consider the last one"<<endl;
+    //print2D(node);
+    //cout<<height(node)<<endl;
+    /* 2. Update height of this ancestor node */
+    node->height = height(node);
+
+    int balance = balancefactor(node);
+    if(balance>1 && node->left==NULL && double_equals(key , node->right->key)==1 ){
+        //cout<<"entered"<<endl;
+        struct node *n = rotateleft(node);
+        //print2D(n);
+        return n;
+        //return rotateleft(node);
+    }
+    if(balance>1 && node->left == NULL && double_equals(key , node->right->key)==-1){
+        node->right = rotateright(node->right);
+        //print2D(node);
+        return rotateleft(node);
+    }
+    if(balance < -1 && node->right == NULL && double_equals(key , node->left->key)==1){
+        node->left = rotateleft(node->left);
+        return rotateright(node);
+    }
+    if(balance<-1 && node->right == NULL && double_equals(key , node->left->key)==-1){
+        return rotateright(node);
+    }
+    if (balance <-1 && double_equals(key , node->left->key)==-1)
+        return rotateright(node);
+
+    // Right Right Case
+    if (balance > 1 && double_equals(key , node->right->key)==1)
+        return rotateleft(node);
+
+    // Left Right Case
+    if (balance <-1 && double_equals(key , node->left->key)==1)
+    {
+        node->left =  rotateleft(node->left);
+        return rotateright(node);
+    }
+
+    // Right Left Case
+    if (balance >1 && double_equals(key , node->right->key)==-1)
+    {
+        node->right = rotateright(node->right);
+        return rotateleft(node);
+    }
+
+    /* return the (unchanged) node pointer */
+    return node;
+}
+
+
+
+int main(){
+	struct node *head=NULL;
+	epsilon = 0.5;
+	/*head=insert(head,1);
+	printf("Preorder:\n");
+	preorder(head);
+	printf("\n");
+	head=insert(head,2);
+	printf("Preorder:\n");
+	preorder(head);
+	printf("\n");
+	head=insert(head,3.5);
+	printf("Preorder:\n");
+	preorder(head);
+	printf("\n");
+	head=insert(head,2.5);
+	printf("Preorder:\n");
+	preorder(head);
+	printf("\n");
+	head=insert(head,4.2);
+	printf("Preorder:\n");
+	preorder(head);
+	printf("\n");
+	head=insert(head,3);
+	printf("Preorder:\n");
+	preorder(head);
+	printf("\n");
+    */
     ifstream infile;
     infile.open("C:\\Users\\burad\\Desktop\\ohm.txt");
-    cout<<"yes"<<endl;
-    double epsaks;
-    infile>>epsaks;
-    map<double,vector<double> > intervalmap;
-    double x ;
-    int num=0;
-    while ( infile>>x ){
-        i=0;
-        num++;
-    if(intervalmap.size()==0)
-    {
-        //cout<<"1"<<endl;
-        vector<double> temp;
-        temp.push_back(x);
-        temp.push_back(x);
-        intervalmap.insert(pair<double,vector<double> >(x,temp));
-        i++;
-    }
-    else
-    {
-        map<double,vector<double> >::iterator it = intervalmap.begin();
-        double currkey = it->first;
-        vector<double> currvalue = intervalmap[currkey];
-        double prevkey = it->first;
-        vector<double> prevvalue = intervalmap[prevkey];
-        if(prevvalue[0]<=x && prevvalue[1]>=x)//x is in the interval
-        {
-            //cout<<"2"<<endl;
-            i++;
-        }
-        else if(prevvalue[0]<= x+epsaks && prevvalue[1]>=x+epsaks)//x+eps is in the first interval and extending the interval
-        {
-            //cout<<"3"<<endl;
-            vector<double> temp ;
-            temp.push_back(x);
-            temp.push_back(prevvalue[1]);
-            intervalmap.insert(pair<double,vector<double> >(x,temp));
-            intervalmap.erase(prevvalue[0]);
-            i++;
-        }
-        else if(prevvalue[0]>x+epsaks)// x is less than first interval lower bound-eps and adding it as a new interval
-        {
-            //cout<<"4"<<endl;
-            vector<double> temp ;
-            temp.push_back(x);
-            temp.push_back(x);
-            intervalmap.insert(pair<double,vector<double> >(x,temp));
-            i++;
-        }
-
-        while(i==0 && ++it != intervalmap.end())
-        {
-            prevvalue = currvalue;
-            prevkey = currkey;
-            currkey = it->first;
-            currvalue = intervalmap[currkey];
-            if(currvalue[0]<=x && currvalue[1]>=x)
-            {
-                //cout<<"5"<<endl;
-                i++;
-                break;
-            }
-            else
-            {
-                double d1 = x-prevvalue[1];
-                double d2 = currvalue[0]-x;
-                if(d2>0)
-                {
-                    if(d1>epsaks && d2>epsaks)//making a new interval
-                    {
-                        //cout<<"6"<<endl;
-                        vector<double> temp;
-                        temp.push_back(x);
-                        temp.push_back(x);
-                        intervalmap.insert(pair<double,vector<double> >(x,temp));
-                        i++;
-                        break;
-                    }
-                    else if(d1<=epsaks && d2>epsaks)//updating previous interval
-                    {
-                        //cout<<"7"<<endl;
-                        intervalmap[prevkey][1]=x;
-                        i++;
-                        break;
-                    }
-                    else if(d1>epsaks && d2<=epsaks)//extending the current interval
-                    {
-                        //cout<<"8"<<endl;
-                        vector<double> sam ;
-                        sam.push_back(x);
-                        sam.push_back(currvalue[1]);
-                        intervalmap.insert(pair<double,vector<double> >(x,sam));
-                        intervalmap.erase(currkey);
-                        i++;
-                        break;
-                    }
-                    else if(d1<=epsaks && d2<=epsaks)
-                    {
-                        //cout<<"9"<<endl;
-                        intervalmap[prevkey][1]=currvalue[1];
-                        intervalmap.erase(currkey);
-                        i++;
-                        break;
-                    }
-                }
-            }
-        }
-
-        if(i==0)
-        {
-            if(currvalue[1] >= x-epsaks)//extending the last interval
-            {
-                //cout<<"10"<<endl;
-                intervalmap[currkey][1] = x;
-                i++;
-
-            }
-            else if(currvalue[1] < x-epsaks)//creating a new interval
-            {
-                //cout<<"11"<<endl;
-                vector<double> temp ;
-                temp.push_back(x);
-                temp.push_back(x);
-                intervalmap.insert(pair<double,vector<double> >(x,temp));
-                i++;
-            }
-        }
+    //cout<<"yes"<<endl;
+    infile>>epsilon;
+    double x;
+    while(infile>>x){
+        head=insert(head,x);
 
     }
-
-    }
-
-    map<double,vector<double> >::iterator itp = intervalmap.begin();
-    while(itp!=intervalmap.end())
-    {
-        double te1 = itp->first;
-        vector<double> te2 = intervalmap[te1];
-        cout<<"( "<<te1<<","<<te2[1]<<" )"<<endl;
-        itp++;
-    }
-    return 0;
+    printf("Preorder:\n");
+    preorder(head);
+    //print2D(head);
+    printf("\n");
 }
