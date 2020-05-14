@@ -1,3 +1,4 @@
+#include <string>
 #include <stdio.h>
 #include <stdlib.h>
 #include <iostream>
@@ -9,7 +10,7 @@ struct node{
 	struct node *left,*right;
 	int height;
 };
-
+string s = "";
 double epsilon;
 //struct node *head;
 
@@ -184,8 +185,8 @@ void preorder(struct node *head){
 // 		printf("%d(bf==%d)  ",temp->key,balancefactor(temp));
         preorder(temp->left);
         cout<<"("<<temp->key<<","<<temp->value<<")"<<balancefactor(temp)<<endl;
-
 		preorder(temp->right);
+	//	return 0;
 	}
 }
 int COUNT =5;
@@ -248,7 +249,7 @@ struct node* insert(struct node* node, double key)
         node->right = insert(node->right, key);
     }
     else if(double_equals(node->key ,key)==1 && (double_equals(node->key ,(key+epsilon))<=0)){
-            cout<<node->key<<"entered"<<endl;
+            //cout<<node->key<<"entered"<<endl;
         if(node->left==NULL){
             node->key = key;
             return node;
@@ -261,7 +262,7 @@ struct node* insert(struct node* node, double key)
                 double temp = nodex->key;
                 node = deleteNode(node,nodex->key);
                 node->key = temp;
-                return node;
+                //return node;
             }else{
                 node->key = key;
                 return node;
@@ -287,7 +288,7 @@ struct node* insert(struct node* node, double key)
                 //preorder(node);
                 //cout<<"end"<<endl;
                 node->value = temp1;
-                return node;
+                //return node;
             }else{
                 node->value = key;
                 return node;
@@ -324,7 +325,7 @@ struct node* insert(struct node* node, double key)
     if (balance <-1 && double_equals(key , node->left->key)==-1)
         return rotateright(node);
 
-    // Right Right Case
+    // Right Right Case done
     if (balance > 1 && double_equals(key , node->right->key)==1)
         return rotateleft(node);
 
@@ -346,7 +347,17 @@ struct node* insert(struct node* node, double key)
     return node;
 }
 
-
+int bal_check(struct node* head){
+    struct node* temp = head;
+    if(temp == NULL){
+        return 0;
+    }
+    if(balancefactor(temp)>1 || balancefactor(temp)<-1){
+        return bal_check(temp->left)+bal_check(temp->right)+1;
+    }else{
+        return bal_check(temp->left)+bal_check(temp->right);
+    }
+}
 
 int main(){
 	struct node *head=NULL;
@@ -383,10 +394,14 @@ int main(){
     double x;
     while(infile>>x){
         head=insert(head,x);
-
+        //printf("Preorder:\n");
+        preorder(head);
+        print2D(head);
+        //cout<<endl<<s<<endl;
+        //printf("\n");
     }
-    printf("Preorder:\n");
-    preorder(head);
-    //print2D(head);
-    printf("\n");
+    cout<<endl<<"done"<<endl;
+    cout<<"It should be zero hopefully  "<< bal_check(head)<<endl;
+    //preorder(head);
 }
+
