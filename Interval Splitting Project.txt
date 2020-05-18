@@ -478,7 +478,7 @@ struct node* insert(struct node* node, double key)
         }else if(balr==0){
             return rotateleft(node);
         }
-    }else if(balance < 1){
+    }else if(balance < -1){
         int ball = balancefactor(node->left);
         if(ball<0){
             //cout<<"3"<<endl;
@@ -549,20 +549,17 @@ int main(){
         //printf("Preorder:\n");
         //preorder(head);
         //print2D(head);
-        cout<<x<<endl;
-        if(double_equals(x,123.361)==0){
-            preorder(head);
-            print2D(head);
-        }
+        //cout<<x<<endl;
+
         //cout<<endl<<s<<endl;
         //printf("\n");
         //cout<<x<<endl;
 
     }
     preorder(head);
-    print2D(head);
+    //print2D(head);
     cout<<endl<<"done"<<endl;
-    cout<<"It should be zero hopefully  "<< bal_check(head)<<endl;
+    cout<<"It should be zero hopefully  "<< endl;
     //preorder(head);
 }
 
